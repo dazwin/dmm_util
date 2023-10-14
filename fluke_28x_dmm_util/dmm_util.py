@@ -13,57 +13,57 @@ import binascii
 
 
 def version():
-    print('version:', fluke_28x_dmm_util.__version__)
-
+    print("Version: {fluke_28x_dmm_util.__version__}", file=sys.stderr)
 
 def usage():
-    print('version:', version())
-    print("Usage: python -m [OPTIONS] fluke_28x_dmm_util] command")
-    print("Options:")
-    print("  -p|--port <serial port>    Mandatory port name (e.g.: COM3)")
-    print("  -s|--separator <separator> Separator for lists and recorded values, defaults to tab '\\t',")
+    version()
+    print("Usage: python -m [OPTIONS] fluke_28x_dmm_util] command", file=sys.stderr)
+    print("Options:", file=sys.stderr)
+    print("  -d|--debug                 Turn on debug output (to stderr)", file=sys.stderr)
+    print("  -p|--port <serial port>    Mandatory port name (e.g.: COM3)", file=sys.stderr)
+    print("  -s|--separator <separator> Separator for lists and recorded values, defaults to tab '\\t',", file=sys.stderr)
     print("  -o|--overloads             Don't display recordings lines containing overloads (lines with values "
-          "9.99999999e+37) or invalid values")
-    print("                             Applies to 'get recordings' only")
-    print("  -t|--timeout <timeout>     Read timeout. Defaults to 0.09s. Be careful changing this value,")
-    print("                             the effect on the total time is important.")
-    print("")
-    print("Command:")
-    print("")
-    print("get")
-    print("  get recordings {name | index} [,{name | index}...]")
-    print("  get minmax {name | index} [,{name | index}...]")
-    print("  get peak {name | index} [,{name | index}...]")
-    print("  get measurements {name | index} [,{name | index}...]")
-    print("  get current: get current measured values")
-    print("  get config: get DMM configuration")
-    print("  get names: get DMM names prefix used for storing data")
-    print("")
-    print("  'name' is the name used for a recording, 'index' is a number")
-    print("  These data can be displayed with 'list' command,")
-    print("  'name' can be surrounded by quotes in case it contains spaces.")
-    print("  If this parameter contains only digits, value is assumed to be an index.")
+          "9.99999999e+37) or invalid values", file=sys.stderr)
+    print("                             Applies to 'get recordings' only", file=sys.stderr)
+    print("  -t|--timeout <timeout>     Read timeout. Defaults to 0.09s. Be careful changing this value,", file=sys.stderr)
+    print("                             the effect on the total time is important.", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Command:", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("get", file=sys.stderr)
+    print("  get recordings {name | index} [,{name | index}...]", file=sys.stderr)
+    print("  get minmax {name | index} [,{name | index}...]", file=sys.stderr)
+    print("  get peak {name | index} [,{name | index}...]", file=sys.stderr)
+    print("  get measurements {name | index} [,{name | index}...]", file=sys.stderr)
+    print("  get current: get current measured values", file=sys.stderr)
+    print("  get config: get DMM configuration", file=sys.stderr)
+    print("  get names: get DMM names prefix used for storing data", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("  'name' is the name used for a recording, 'index' is a number", file=sys.stderr)
+    print("  These data can be displayed with 'list' command,", file=sys.stderr)
+    print("  'name' can be surrounded by quotes in case it contains spaces.", file=sys.stderr)
+    print("  If this parameter contains only digits, value is assumed to be an index.", file=sys.stderr)
     print(
         "  Otherwise, it will be taken as a name. Multiple names or indexes are permitted, they must be comma "
-        "separated, with no spaces before or after the commas.")
-    print("")
-    print("set")
-    print("  set company <value>: set DMM company name")
-    print("  set operator <value>: set DMM operator name")
-    print("  set site <value>: set DMM site name")
-    print("  set contact <value>: set DMM contact name")
-    print("  set datetime: set DMM date and time to the PC current date/time")
-    print("  set names <index> <name>: set the name of recording at given index")
-    print("")
-    print("  'index' is a value between 1 and 8. List can be obtained using 'get names'.")
-    print("")
-    print("list")
-    print("  list recordings: list recording type recordings")
-    print("  list minmax: list min/max type recordings")
-    print("  list peak: list peak type recordings")
-    print("  list measurements: list all the measurements")
-    print("  list all: list all the memory stored values")
-    print("")
+        "separated, with no spaces before or after the commas.", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("set", file=sys.stderr)
+    print("  set company <value>: set DMM company name", file=sys.stderr)
+    print("  set operator <value>: set DMM operator name", file=sys.stderr)
+    print("  set site <value>: set DMM site name", file=sys.stderr)
+    print("  set contact <value>: set DMM contact name", file=sys.stderr)
+    print("  set datetime: set DMM date and time to the PC current date/time", file=sys.stderr)
+    print("  set names <index> <name>: set the name of recording at given index", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("  'index' is a value between 1 and 8. List can be obtained using 'get names'.", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("list", file=sys.stderr)
+    print("  list recordings: list recording type recordings", file=sys.stderr)
+    print("  list minmax: list min/max type recordings", file=sys.stderr)
+    print("  list peak: list peak type recordings", file=sys.stderr)
+    print("  list measurements: list all the measurements", file=sys.stderr)
+    print("  list all: list all the memory stored values", file=sys.stderr)
+    print("", file=sys.stderr)
     sys.exit()
 
 
@@ -84,8 +84,8 @@ def start_serial():
                             baudrate=115200, bytesize=8, parity='N', stopbits=1,
                             timeout=timeout, rtscts=False, dsrdtr=False)
     except serial.serialutil.SerialException as err:
-        print('Serial port ' + port + ' does not respond')
-        print(err)
+        print(f"Serial port {port} did not respond\n", file=sys.stderr)
+        print(f"{err}\n", file=sys.stderr)
         sys.exit(1)
 
 
@@ -270,9 +270,12 @@ def qsrr(reading_idx, sample_idx):
     retry_count = 0
     res = ''
     while retry_count < 20:
-        #    print ("in qsrr reading_idx=",reading_idx,",sample_idx",sample_idx)
+        if debug:
+            print(f"in qsrr reading_idx={reading_idx},sample_idx={sample_idx}", file=sys.stderr)
         res = meter_command("qsrr " + reading_idx + "," + sample_idx)
-        #    print('qsrr',binascii.hexlify(res))
+
+        if debug:
+            print(f"qsrr={binascii.hexlify(res)}", file=sys.stderr)
         if len(res) == 146:
             return {
                 'start_ts': parse_time(get_double(res, 0)),
@@ -286,14 +289,16 @@ def qsrr(reading_idx, sample_idx):
                 'transient_state': get_map_value('transientstate', res, 144)
             }
         else:
-            #      print ('============== RETRY ===============')
+            if debug:
+                print("============== RETRY ===============", file=sys.stderr)
             retry_count += 1
 
     raise ValueError('By app: Invalid block size: %d should be 146' % (len(res)))
 
 
 def parse_readings(reading_bytes):
-    # print ("in parse_readings,reading_bytes=",reading_bytes,"lgr:",len(reading_bytes))
+    if debug:
+        print("in parse_readings,reading_bytes={reading_bytes},lgr={len(reading_bytes)}", file=sys.stderr)
     readings = {}
     chunks, chunk_size = len(reading_bytes), 30
     list_readings = [reading_bytes[i:i + chunk_size] for i in range(0, chunks, chunk_size)]
@@ -308,12 +313,14 @@ def parse_readings(reading_bytes):
             'attribute': get_map_value('attribute', r, 20),
             'ts': get_time(r, 22)
         }
-    # print('------', readings, type(readings))
+    if debug:
+        print(f"------{readings}, {type(readings)}", file=sys.stderr)
     return readings
 
 
 def get_map_value(map_name, string, offset):
-    #  print "map_name",map_name,"in map_cache",map_name in map_cache
+    if debug:
+        print(f"map_name={map_name} in map_cache={map_name in map_cache}", file=sys.stderr)
     if map_name in map_cache:
         dmm_map = map_cache[map_name]
     else:
@@ -322,52 +329,71 @@ def get_map_value(map_name, string, offset):
     value = str(get_u16(string, offset))
     if value not in dmm_map:
         raise ValueError('By app: Can not find key %s in map %s' % (value, map_name))
-    # print("--->", map_name, value, dmm_map[value], type(dmm_map[value]))
+    
+    if debug:
+        print(f"--->{map_name}, {value}, {dmm_map[value]}, {type(dmm_map[value])}", file=sys.stderr)
     return dmm_map[value]
 
 
 def get_multimap_value(map_name, string, offset):
-    #  print "in get_multimap_value,map_name=",map_name
-    #  print "map_name",map_name,"in map_cache",map_name in map_cache
+    if debug:
+        print(f"in get_multimap_value,map_name={map_name}", file=sys.stderr)
+        print(f"map_name={map_name},in map_cache={map_name in map_cache}", file=sys.stderr)
+
     if map_name in map_cache:
         dmm_map = map_cache[map_name]
     else:
         dmm_map = qemap(map_name)
         map_cache[map_name] = dmm_map
-    #  print "in get_multimap_value,map=",map
+
+    if debug:
+        print(f"in get_multimap_value,map={map}", file=sys.stderr)
+
     value = str(get_u16(string, offset))
-    #  print "in get_multimap_value,value=",value
+
+    if debug:
+        print(f"in get_multimap_value,value={value}", file=sys.stderr)
+
     if value not in dmm_map:
         raise ValueError('By app: Can not find key %s in map %s' % (value, map_name))
     ret = [dmm_map[value]]
-    #  print "in get_multimap_value,ret=",ret
-    #  print "+++>",value,map[value],"ret",ret
+
+    if debug:
+        print(f"in get_multimap_value,ret={ret}", file=sys.stderr)
+        print(f"+++>{value},{map[value]},ret={ret}", file=sys.stderr)
+
     return ret
 
 
 def qemap(map_name):
     res = meter_command("qemap " + str(map_name))
-    # print("Traitement de la map: ", map_name)
-    # print("res dans qemap=",res)
-    # print("in qemap. Longueur=",len(res))
+
+    if debug:
+        print(f"Traitement de la map: {map_name}", file=sys.stderr)
+        print(f"res dans qemap={res}", file=sys.stderr)
+        print(f"in qemap. Longueur={len(res)}", file=sys.stderr)
+
     entry_count = int(res.pop(0))
-    # print("in qemap. entry_count=",entry_count)
+
+    if debug:
+        print(f"in qemap. entry_count={entry_count}", file=sys.stderr)
+
     if len(res) != entry_count * 2:
         raise ValueError('By app: Error parsing qemap')
     dmm_map = {}
     for i in range(0, len(res), 2):
         dmm_map[res[i]] = res[i + 1]
-    #  print "map dans qemap:",map
+
+    if debug:
+        print("map dans qemap: {map}", file=sys.stderr)
+
     return dmm_map
 
 
 def get_s16(string, offset):  # Il faut valider le portage de cette fonction
     val = get_u16(string, offset)
-    #  print "val in get_s16 avant: ",val
-    #  print "val in get_s16 pendant: ",val & 0x8000
     if val & 0x8000 != 0:
         val = -(0x10000 - val)
-    #  print "val in get_s16 ares: ",val
     return val
 
 
@@ -389,14 +415,23 @@ def get_time(string, offset):
 
 def parse_time(t):
     return time.gmtime(t)
+#   return datetime.datetime.utcfromtimestamp(t)
 
 
 def qrsi(idx):
-    #  print ('IDX',idx)
+    if debug:
+        print(f"IDX{idx}", file=sys.stderr)
+
     res = meter_command('qrsi ' + idx)
-    #  print('res',binascii.hexlify(res))
+
+    if debug:
+        print(f"res={binascii.hexlify(res)}", file=sys.stderr)
+
     reading_count = get_u16(res, 76)
-    #  print ("reading_count",reading_count)
+
+    if debug:
+        print(f"reading_count={reading_count}")
+
     if len(res) < reading_count * 30 + 78:
         raise ValueError(
             'By app: qrsi parse error, expected at least %d bytes, got %d' % (reading_count * 30 + 78, len(res)))
@@ -578,7 +613,7 @@ def do_saved_measurements(records=None):
                           measurement['readings']['PRIMARY']['unit'], sep=sep)
                     break
     if not found:
-        print("Saved names not found")
+        print("Saved names not found", file=sys.stderr)
         sys.exit(4)
 
 
@@ -597,7 +632,10 @@ def do_recordings(records):
     for i in series:
         if i.isdigit():
             recording = qrsi(str(int(i) - 1))
-            # print ('recording digit',recording)
+
+            if debug:
+                print(f"recording digit {recording}", file=sys.stderr)
+
             duration = format_duration(recording['start_ts'], recording['end_ts'])
             print('Index %s, Name %s, Start %s, End %s, Duration %s, Measurements %s'
                   % (str(i), (recording['name']).decode(), time.strftime('%Y-%m-%d %H:%M:%S', recording['start_ts']),
@@ -606,7 +644,10 @@ def do_recordings(records):
 
             for k in range(0, recording['num_samples']):
                 measurement = qsrr(str(recording['reading_index']), str(k))
-                # print ('measurement',measurement)
+
+                if debug:
+                    print(f"measurement {measurement}", file=sys.stderr)
+
                 if overloads and \
                         (measurement['readings2']['PRIMARY']['value'] == 9.99999999e+37 or
                          measurement['readings']['MAXIMUM']['value'] == 9.99999999e+37 or
@@ -631,7 +672,10 @@ def do_recordings(records):
         else:
             for j in interval:
                 recording = qrsi(str(int(j) - 1))
-                # print ('recording non digit',recording)
+
+                if debug:
+                    print(f"recording non digit {recording}", file=sys.stderr)
+
                 if recording['name'] == i.encode():
                     found = True
                     duration = format_duration(recording['start_ts'], recording['end_ts'])
@@ -644,7 +688,10 @@ def do_recordings(records):
                           sep=sep)
                     for k in range(0, recording['num_samples']):
                         measurement = qsrr(str(recording['reading_index']), str(k))
-                        #            print ('measurement',measurement)
+
+                        if debug:
+                            print(f"measurement {measurement}", file=sys.stderr)
+
                         if overloads and \
                                 (measurement['readings2']['PRIMARY']['value'] == 9.99999999e+37 or
                                  measurement['readings']['MAXIMUM']['value'] == 9.99999999e+37 or
@@ -668,7 +715,7 @@ def do_recordings(records):
                     print()
                     break
     if not found:
-        print("Saved names not found")
+        print("Saved names not found", file=sys.stderr)
         sys.exit(5)
 
 
@@ -702,7 +749,10 @@ def read_retry(cmd):
             time.sleep(0.01)
             retry_read_count += 1
         retry_cmd_count += 1
-        #    print ("========== read_retry ===========")
+
+        if debug:
+            print("========== read_retry ===========", file=sys.stderr)
+
         ser.reset_input_buffer()
         ser.reset_output_buffer()
         ser.close()
@@ -713,27 +763,31 @@ def read_retry(cmd):
 
 
 def meter_command(cmd):
-    #  print ("cmd=",cmd)
+    if debug:
+        print(f"cmd={cmd}", file=sys.stderr)
+
     retry_count = 0
     status = 0
     data = ''
     while retry_count < 20:
         data, result_ok = read_retry(cmd)
         if data == b'':
-            print('Did not receive data from DMM')
+            print("Did not receive data from DMM", file=sys.stderr)
             sys.exit(6)
         status = chr(data[0])
         if status == '0' and chr(data[1]) == '\r': break
         if result_ok: break
         retry_count += 1
-    #    print ("========== meter_command ===========")
+
+        if debug:
+            print("========== meter_command ===========", file=sys.stderr)
 
     if status != '0':
-        #    print ("Command: %s failed. Status=%c" % (cmd, status))
-        print("Invalid value")
+        print(f"Command: {cmd} failed. Status={status}", file=sys.stderr)
+        print("Invalid value", file=sys.stderr)
         sys.exit(7)
     if chr(data[1]) != '\r':
-        print('Did not receive complete reply from DMM')
+        print("Did not receive complete reply from DMM", file=sys.stderr)
         sys.exit(8)
 
     binary = data[2:4] == b'#0'
@@ -755,16 +809,19 @@ def main():
     global timeout
     global port
     global overloads
+    global debug
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--port", help="usb port used (Mandatory)")
-    parser.add_argument("-s", "--separator", help="custom separator (defaults to \\t")
+    parser.add_argument("-d", "--debug", help="output debug information", action="store_true")
+    parser.add_argument("-p", "--port", help="usb port used (mandatory)")
+    parser.add_argument("-s", "--separator", help="custom separator (defaults to \\t)")
     parser.add_argument("-t", "--timeout", help="custom timeout (defaults to 0.09s)")
     parser.add_argument("-o", "--overloads", help="don't display lines containing overloads", action="store_true")
     parser.add_argument("-v", "--version", help="show version and exit", action="store_true")
     parser.add_argument("command", nargs="*", help="command used")
     args = parser.parse_args()
 
+    debug = args.debug
     port = args.port
 
     if args.separator:
@@ -832,3 +889,4 @@ map_cache = {}
 ser = serial.Serial()
 port = ''
 overloads = False
+debug = False
