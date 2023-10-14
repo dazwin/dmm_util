@@ -180,10 +180,15 @@ def do_list(kind_rec):
 def qddb():
     current_bytes = meter_command("qddb")
 
+    if current_bytes is None:
+        print("No data received", file=sys.stderr)
+        return None
+
     reading_count = get_u16(current_bytes, 32)
     if len(current_bytes) != reading_count * 30 + 34:
-        raise ValueError(
-            'By app: qddb parse error, expected %d bytes, got %d' % ((reading_count * 30 + 34), len(current_bytes)))
+        print(f"By app: qddb parse error, expected {reading_count * 30 + 34} bytes, got {len(current_bytes)}", file=sys.stderr)
+        return None
+
     # tsval = get_double(bytes, 20)
     # all bytes parsed
     return {
@@ -792,6 +797,12 @@ def meter_command(cmd):
     if chr(data[1]) != '\r':
         print("Did not receive complete reply from DMM", file=sys.stderr)
         sys.exit(8)
+
+    if debug:
+        print(f"data={data}", file=sys.stderr)
+
+    if len(data) <= 2:
+        return None
 
     binary = data[2:4] == b'#0'
 
