@@ -367,7 +367,7 @@ def get_multimap_value(map_name, string, offset):
 
     if debug:
         print(f"in get_multimap_value,ret={ret}", file=sys.stderr)
-        print(f"+++>{value},{map[value]},ret={ret}", file=sys.stderr)
+        print(f"+++>{value},ret={ret}", file=sys.stderr)
 
     return ret
 
