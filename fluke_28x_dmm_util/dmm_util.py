@@ -8,7 +8,6 @@ import sys
 import datetime
 import calendar
 import argparse
-import fluke_28x_dmm_util
 import binascii
 
 
@@ -27,6 +26,7 @@ def usage():
     print("                             Applies to 'get recordings' only", file=sys.stderr)
     print("  -t|--timeout <timeout>     Read timeout. Defaults to 0.09s. Be careful changing this value,", file=sys.stderr)
     print("                             the effect on the total time is important.", file=sys.stderr)
+    print("  -m|--millis                Output with millisecond precision", file=sys.stderr)
     print("", file=sys.stderr)
     print("Command:", file=sys.stderr)
     print("", file=sys.stderr)
@@ -66,6 +66,8 @@ def usage():
     print("", file=sys.stderr)
     sys.exit()
 
+def format_ts(ts):
+    return ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] if millis else ts.strftime('%Y-%m-%d %H:%M:%S')
 
 def do_get_names():
     start_serial()
@@ -103,23 +105,23 @@ def do_current():
     while True:
         try:
             res = qddb()
-            print(time.strftime('%Y-%m-%d %H:%M:%S', res['readings']['LIVE']['ts']),
-                  ":",
+            if res is None:
+                continue
+            print(format_ts(res['readings']['LIVE']['ts']),
                   res['readings']['LIVE']['value'],
                   res['readings']['LIVE']['unit'],
-                  "=>",
-                  res['prim_function'])
+                  res['prim_function'],
+                  sep=sep)
         except KeyboardInterrupt:
             sys.exit(2)
 
 
 def format_duration(start_time, end_time):
-    seconds = time.mktime(end_time) - time.mktime(start_time)
+    seconds = (end_time - start_time).total_seconds()
     m, s = divmod(int(seconds), 60)
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
     return f'{d:02d}:{h:02d}:{m:02d}:{s:02d}'
-
 
 def do_list(kind_rec):
     start_serial()
@@ -150,8 +152,8 @@ def do_list(kind_rec):
                 mm = do_min_max_cmd(cmd, str(i - 1))
                 duration = format_duration(mm['start_ts'], mm['end_ts'])
                 name = mm['name'].decode()
-                debut_d = time.strftime('%Y-%m-%d %H:%M:%S', mm['start_ts'])
-                fin_d = time.strftime('%Y-%m-%d %H:%M:%S', mm['end_ts'])
+                debut_d = format_ts(mm['start_ts'])
+                fin_d = format_ts(mm['end_ts'])
                 print(f'{i:d}', name, lib, debut_d, fin_d,
                       duration, sep=sep)
             print('')
@@ -164,8 +166,8 @@ def do_list(kind_rec):
                 name = recording['name'].decode()
                 # sample_interval = recording['sample_interval']
                 num_samples = recording['num_samples']
-                debut_d = time.strftime('%Y-%m-%d %H:%M:%S', recording['start_ts'])
-                fin_d = time.strftime('%Y-%m-%d %H:%M:%S', recording['end_ts'])
+                debut_d = format_ts(recording['start_ts'])
+                fin_d = format_ts(recording['end_ts'])
                 print(f'{i:d}', name, lib, debut_d, fin_d,
                       duration, num_samples, sep=sep)
             print('')
@@ -234,7 +236,7 @@ def do_get_config():
     print("Model:", info['model_number'])
     print("Software Version:", info['software_version'])
     print("Serial Number:", info['serial_number'])
-    print("Current meter time:", time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(int(clock()))))
+    print("Current meter time:", format_ts(parse_time(int(clock()))))
     print("Company:", meter_command("qmpq company")[0].lstrip("'").rstrip("'"))
     print("Contact:", meter_command("qmpq contact")[0].lstrip("'").rstrip("'"))
     print("Operator:", meter_command("qmpq operator")[0].lstrip("'").rstrip("'"))
@@ -414,8 +416,7 @@ def get_time(string, offset):
 
 
 def parse_time(t):
-    return time.gmtime(t)
-#   return datetime.datetime.utcfromtimestamp(t)
+   return datetime.datetime.utcfromtimestamp(t)
 
 
 def qrsi(idx):
@@ -562,20 +563,20 @@ def do_saved_min_max_peak(records, field, cmd):
 
 
 def print_min_max_peak(measurement):
-    print((measurement['name']).decode('utf-8'), 'start', time.strftime('%Y-%m-%d %H:%M:%S', measurement['start_ts']),
+    print((measurement['name']).decode('utf-8'), 'start', format_ts(measurement['start_ts']),
           measurement['autorange'], 'Range', int(measurement['range_max ']), measurement['unit'])
     print_min_max_peak_detail(measurement, 'PRIMARY')
     print_min_max_peak_detail(measurement, 'MAXIMUM')
     print_min_max_peak_detail(measurement, 'AVERAGE')
     print_min_max_peak_detail(measurement, 'MINIMUM')
-    print((measurement['name']).decode('utf-8'), 'end', time.strftime('%Y-%m-%d %H:%M:%S', measurement['end_ts']))
+    print((measurement['name']).decode('utf-8'), 'end', format_ts(measurement['end_ts']))
 
 
 def print_min_max_peak_detail(measurement, detail):
     print(sep, detail,
           measurement['readings'][detail]['value'],
           measurement['readings'][detail]['unit'],
-          time.strftime('%Y-%m-%d %H:%M:%S', measurement['readings'][detail]['ts']), sep=sep)
+          format_ts(measurement['readings'][detail]['ts']), sep=sep)
 
 
 def do_saved_measurements(records=None):
@@ -597,7 +598,7 @@ def do_saved_measurements(records=None):
             measurement = qsmr(str(int(i) - 1))
             print(i, (measurement['name']).decode('utf-8'),
                   'Measurement',
-                  time.strftime('%Y-%m-%d %H:%M:%S', measurement['readings']['PRIMARY']['ts']),
+                  format_ts(measurement['readings']['PRIMARY']['ts']),
                   measurement['readings']['PRIMARY']['value'],
                   measurement['readings']['PRIMARY']['unit'], sep=sep)
             found = True
@@ -608,7 +609,7 @@ def do_saved_measurements(records=None):
                     found = True
                     print(j, (measurement['name']).decode('utf-8'),
                           'Measurement',
-                          time.strftime('%Y-%m-%d %H:%M:%S', measurement['readings']['PRIMARY']['ts']),
+                          format_ts(measurement['readings']['PRIMARY']['ts']),
                           measurement['readings']['PRIMARY']['value'],
                           measurement['readings']['PRIMARY']['unit'], sep=sep)
                     break
@@ -638,8 +639,8 @@ def do_recordings(records):
 
             duration = format_duration(recording['start_ts'], recording['end_ts'])
             print('Index %s, Name %s, Start %s, End %s, Duration %s, Measurements %s'
-                  % (str(i), (recording['name']).decode(), time.strftime('%Y-%m-%d %H:%M:%S', recording['start_ts']),
-                     time.strftime('%Y-%m-%d %H:%M:%S', recording['end_ts']), duration, recording['num_samples']))
+                  % (str(i), (recording['name']).decode(), format_ts(recording['start_ts']),
+                     format_ts(recording['end_ts']), duration, recording['num_samples']))
             print('Start Time', 'Primary', '', 'Maximum', '', 'Average', '', 'Minimum', '', '#Samples', 'Type', sep=sep)
 
             for k in range(0, recording['num_samples']):
@@ -656,7 +657,7 @@ def do_recordings(records):
                 duration = str(round(measurement['readings']['AVERAGE']['value']
                                      / measurement['duration'], measurement['readings']['AVERAGE']['decimals'])) \
                     if measurement['duration'] != 0 else 0
-                print(time.strftime('%Y-%m-%d %H:%M:%S', measurement['start_ts']),
+                print(format_ts(measurement['start_ts']),
                       str(measurement['readings2']['PRIMARY']['value']),
                       measurement['readings2']['PRIMARY']['unit'],
                       str(measurement['readings']['MAXIMUM']['value']),
@@ -681,8 +682,9 @@ def do_recordings(records):
                     duration = format_duration(recording['start_ts'], recording['end_ts'])
                     print('Index %s, Name %s, Start %s, End %s, Duration %s, Measurements %s'
                           % (str(j), (recording['name']).decode(),
-                             time.strftime('%Y-%m-%d %H:%M:%S', recording['start_ts']),
-                             time.strftime('%Y-%m-%d %H:%M:%S', recording['end_ts']), duration,
+                             format_ts(recording['start_ts']),
+                             format_ts(recording['end_ts']),
+                             duration,
                              recording['num_samples']))
                     print('Start Time', 'Primary', '', 'Maximum', '', 'Average', '', 'Minimum', '', '#Samples', 'Type',
                           sep=sep)
@@ -701,7 +703,7 @@ def do_recordings(records):
                                              / measurement['duration'],
                                              measurement['readings']['AVERAGE']['decimals'])) \
                             if measurement['duration'] != 0 else 0
-                        print(time.strftime('%Y-%m-%d %H:%M:%S', measurement['start_ts']),
+                        print(format_ts(measurement['start_ts']),
                               str(measurement['readings2']['PRIMARY']['value']),
                               measurement['readings2']['PRIMARY']['unit'],
                               str(measurement['readings']['MAXIMUM']['value']),
@@ -710,7 +712,8 @@ def do_recordings(records):
                               measurement['readings']['AVERAGE']['unit'],
                               str(measurement['readings']['MINIMUM']['value']),
                               measurement['readings']['MINIMUM']['unit'],
-                              str(measurement['duration']), sep=sep, end=sep)
+                              str(measurement['duration']),
+                              sep=sep, end=sep)
                         print('INTERVAL' if measurement['record_type'] == 'INTERVAL' else measurement['stable'])
                     print()
                     break
@@ -810,12 +813,14 @@ def main():
     global port
     global overloads
     global debug
+    global millis
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="output debug information", action="store_true")
     parser.add_argument("-p", "--port", help="usb port used (mandatory)")
     parser.add_argument("-s", "--separator", help="custom separator (defaults to \\t)")
     parser.add_argument("-t", "--timeout", help="custom timeout (defaults to 0.09s)")
+    parser.add_argument("-m", "--millis", help="output with millisecond precision", action="store_true")
     parser.add_argument("-o", "--overloads", help="don't display lines containing overloads", action="store_true")
     parser.add_argument("-v", "--version", help="show version and exit", action="store_true")
     parser.add_argument("command", nargs="*", help="command used")
@@ -829,6 +834,9 @@ def main():
 
     if args.timeout:
         timeout = float(args.timeout)
+
+    if args.millis:
+        millis = True
 
     if args.version:
         version()
@@ -890,3 +898,4 @@ ser = serial.Serial()
 port = ''
 overloads = False
 debug = False
+millis = False
